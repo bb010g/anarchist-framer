@@ -1,65 +1,95 @@
+/* global browser */
+
+const ensureArray = val =>
+    Array.isArray(val)
+        ? val
+        : [ val ];
+
+const map = (fn, val) =>
+    Array.prototype.map.call(val, fn);
+
+const q = str =>
+    document.querySelector(str);
+
+const el = (str, props = {}) => {
+    const elem = document.createElement(str);
+    Object.assign(elem, props);
+    return elem;
+};
+
+const text = str =>
+    document.createTextNode(str);
+
+const append = (parent, children = []) => {
+    ensureArray(children)
+        .forEach(child =>
+            parent.appendChild(child));
+    return parent;
+};
+
+
 const createSite = function (id, origin) {
-  const site = document.createElement('tr');
-  site.id = `site-${id}`;
-  const originTd = document.createElement('td');
-  const originInput = document.createElement('input');
-  originInput.type = 'text';
-  originInput.className = 'origin';
-  originInput.value = origin;
-  originInput.required = true;
-  originTd.appendChild(originInput);
-  site.appendChild(originTd);
-  const remTd = document.createElement('td');
-  const remButton = document.createElement('button');
-  remButton.className = 'rem';
-  remButton.type = 'button';
-  remButton.appendChild(document.createTextNode('Remove'));
-  remButton.addEventListener('click', function (e) {
-    site.parentNode.removeChild(site);
-  });
-  remTd.appendChild(remButton);
-  site.appendChild(remTd);
-  return site;
-}
-const addSite = function (...args) {
-  const sites = document.querySelector('#sites');
-  sites.appendChild(createSite(sites.children.length, ...args));
-}
-const clearSites = function () {
-  const sites = document.querySelector('#sites');
-  while (sites.firstChild) {
-    sites.removeChild(sites.firstChild);
-  }
-}
+    const remButton = append(
+        el('button', {
+            className: 'rem',
+            type: 'button'
+        }),
+        text('Remove'));
+    const site = append(
+        el('tr', { id: `site-${id}` }),
+        [
+            append(
+                el('td'),
+                el('input', {
+                    type: 'text',
+                    className: 'origin',
+                    value: origin,
+                    required: true
+                })),
+            append(
+                el('td'),
+                remButton)
+        ]);
+    remButton.addEventListener('click', () =>
+        site.parentNode.removeChild(site));
+    return site;
+};
+const addSite = (...args) => {
+    const sites = q('#sites');
+    return append(
+        sites,
+        createSite(sites.children.length, ...args));
+};
 
-const saveOptions = function (e) {
-  const newSites = [];
-  for (const tr of document.querySelector('#sites').children) {
-    const origin = tr.getElementsByClassName('origin')[0].value;
-    newSites.push(origin);
-  }
-  browser.storage.local.set({
-    sites: newSites
-  });
-  e.preventDefault();
-  return false;
-}
+const clearSites = () => {
+    const sites = q('#sites');
+    while (sites.firstChild) {
+        sites.removeChild(sites.firstChild);
+    }
+};
 
-const restoreOptions = function () {
-  browser.storage.local.get('sites').then(({sites}) => {
-    clearSites();
-    if (typeof sites !== 'object' || !Array.isArray(sites)) {
-      browser.storage.local.set({sites: []});
-      sites = [];
-    }
-    for (const origin of sites) {
-      addSite(origin);
-    }
-  });
-}
+const saveOptions = (e) => {
+    browser.storage.local.set({
+        sites: map(
+            tr =>tr.getElementsByClassName('origin')[0].value,
+            document.querySelector('#sites').children)
+    });
+    e.preventDefault();
+    return false;
+};
+
+const restoreOptions = () =>
+    browser.storage.local.get('sites')
+        .then(({ sites }) => {
+            clearSites();
+            if (!Array.isArray(sites)) {
+                browser.storage.local.set({ sites: [] });
+                sites = [];
+            }
+            sites.forEach(addSite);
+        });
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
 document.querySelector('form').addEventListener('submit', saveOptions);
-document.querySelector('#add-site').addEventListener('click', function (e) {
-  addSite('', '');
-});
+document.querySelector('#add-site').addEventListener('click', () =>
+    addSite('', ''));

@@ -18,7 +18,10 @@
   ],
 
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "matchPatternToRegExp.js",
+      "background.js"
+    ]
   },
 
   "applications": {
