@@ -1,3 +1,5 @@
+'use strict';
+
 /* global browser matchPatternToRegExp */
 
 const mapPatterns = sites =>
@@ -17,8 +19,10 @@ const filterHeaders = regexes =>
             }
             : {};
 
-const loadSites = sites =>
-    Promise.resolve(sites || browser.storage.local.get('sites'))
+const loadSites = (sites, lazy) =>
+    Promise.resolve({ sites } || lazy
+        ? { sites: [] }
+        : browser.storage.local.get('sites'))
         .then(({ sites }) => {
             const filterer = filterHeaders(mapPatterns(sites));
 
@@ -37,4 +41,4 @@ const loadSites = sites =>
             browser.storage.onChanged.addListener(loadChangedSites);
         });
 
-loadSites();
+loadSites([], true);
