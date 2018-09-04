@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <style>input.origin { width: 42ch; }</style>
+  </head>
+  <body>
+    <form action="">
+      <fieldset>
+          <legend>Whitelist (<a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">match patterns</a>)</legend>
+        <table id="whitelist">
+          <thead>
+            <tr>
+              <th scope="col">Origin</th>
+            </tr>
+          </thead>
+          <tbody id="sites">
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><button id="add-site" type="button">Add</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </fieldset>
+      <button type="submit">Save</button>
+    </form>
+    <script src="options.js"></script>
+  </body>
+</html>
