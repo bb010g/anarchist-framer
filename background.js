@@ -68,17 +68,16 @@ browser.storage.local.get('sites').then(({sites}) => {
 browser.webRequest.onHeadersReceived.addListener(
   function(details) {
     const {documentUrl, type, responseHeaders} = details;
-    if (regexes.length == 0) {
-      return {};
-    }
-    for (const regex of regexes) {
-      if (!(documentUrl && type == 'sub_frame' && documentUrl.match(regex))) {
-        return {};
+    if (type == 'sub_frame' && documentUrl) {
+      for (const regex of regexes) {
+        if (documentUrl.match(regex)) {
+          return {
+            responseHeaders: responseHeaders.filter(({name}) => name.toLowerCase() != "x-frame-options"),
+          };
+        }
       }
     }
-    return {
-      responseHeaders: responseHeaders.filter(({name}) => name.toLowerCase() != "x-frame-options"),
-    };
+    return {};
   },
   { urls: ["<all_urls>"] },
   ["blocking", "responseHeaders"]
