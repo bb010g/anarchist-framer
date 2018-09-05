@@ -1,31 +1,43 @@
-const createSite = function (id, origin) {
-  const site = document.createElement('tr');
-  site.id = `site-${id}`;
-  const originTd = document.createElement('td');
-  const originInput = document.createElement('input');
-  originInput.type = 'text';
-  originInput.className = 'origin';
-  originInput.value = origin;
-  originInput.required = true;
-  originTd.appendChild(originInput);
-  site.appendChild(originTd);
-  const remTd = document.createElement('td');
-  const remButton = document.createElement('button');
-  remButton.className = 'rem';
-  remButton.type = 'button';
-  remButton.appendChild(document.createTextNode('Remove'));
-  remButton.addEventListener('click', function (e) {
-    site.parentNode.removeChild(site);
-  });
-  remTd.appendChild(remButton);
-  site.appendChild(remTd);
-  return site;
-}
-const addSite = function (...args) {
+const element = (tagName, props = {}, children = [], listeners = {}) => {
+  const el = document.createElement(tagName);
+  Object.assign(el, props);
+  for (const child of children) {
+    el.appendChild(child);
+  }
+  for (const ev in listeners) {
+    el.addEventListener(ev, listeners[ev]);
+  }
+  return el;
+};
+
+const createSite = (id, origin) =>
+  element('tr', {id: `site-${id}`}, [
+    element('td', {}, [
+      element('input', {
+        type: 'text',
+        className: 'origin',
+        value: origin,
+        required: true,
+      }),
+    ]),
+    element('td', {}, [
+      element(
+        'button',
+        {className: 'rem', type: 'button'},
+        [document.createTextNode('Remove')],
+        {click: function (e) {
+          const site = this.parentNode.parentNode;
+          site.parentNode.removeChild(site);
+        }}
+      ),
+    ])
+  ]);
+
+const addSite = (...args) => {
   const sites = document.querySelector('#sites');
   sites.appendChild(createSite(sites.children.length, ...args));
 }
-const clearSites = function () {
+const clearSites = () => {
   const sites = document.querySelector('#sites');
   while (sites.firstChild) {
     sites.removeChild(sites.firstChild);
@@ -33,24 +45,22 @@ const clearSites = function () {
 }
 
 const saveOptions = function (e) {
-  const newSites = [];
+  const sites = [];
   for (const tr of document.querySelector('#sites').children) {
     const origin = tr.getElementsByClassName('origin')[0].value;
-    newSites.push(origin);
+    sites.push(origin);
   }
-  browser.storage.local.set({
-    sites: newSites
-  });
+  browser.storage.local.set({sites});
   e.preventDefault();
   return false;
 }
 
-const restoreOptions = function () {
+const restoreOptions = function (e) {
   browser.storage.local.get('sites').then(({sites}) => {
     clearSites();
-    if (typeof sites !== 'object' || !Array.isArray(sites)) {
-      browser.storage.local.set({sites: []});
+    if (!Array.isArray(sites)) {
       sites = [];
+      browser.storage.local.set({sites});
     }
     for (const origin of sites) {
       addSite(origin);

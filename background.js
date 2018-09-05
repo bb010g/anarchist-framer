@@ -1,67 +1,60 @@
-let regexes = [];
+// The extra array is for boxing the inner array because closures.
+const regexes = [[]];
 
 // from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns
-const matchPatternToRegExp = function(pattern) {
+const matchPatternToRegExp = pattern => {
     if (pattern === '') {
-        return (/^(?:http|https|file|ftp|app):\/\//);
+        return /^(?:http|https|ws|wss|file|ftp|ftps):\/\//;
     }
 
-    const schemeSegment = '(\\*|http|https|ws|wss|file|ftp)';
+    const schemeSegment = '(\\*|http|https|ws|wss|file|ftp|ftps)';
     const hostSegment = '(\\*|(?:\\*\\.)?(?:[^/*]+))?';
     const pathSegment = '(.*)';
     const matchPatternRegExp = new RegExp(
         `^${schemeSegment}://${hostSegment}/${pathSegment}$`
     );
 
-    let match = matchPatternRegExp.exec(pattern);
+    const match = matchPatternRegExp.exec(pattern);
     if (!match) {
-         throw new TypeError(`"${pattern}" is not a valid MatchPattern`);
+        throw new TypeError(`"${pattern}" is not a valid MatchPattern`);
     }
 
     let [, scheme, host, path] = match;
-    if (!host) {
+    if (!host && scheme !== 'file') {
         throw new TypeError(`"${pattern}" does not have a valid host`);
     }
 
-    let regex = '^';
+    const schemeRegex = scheme === '*' ? '(http|https|ws|wss)' : scheme;
 
-    if (scheme === '*') {
-        regex += '(http|https)';
-    } else {
-        regex += scheme;
-    }
-
-    regex += '://';
-
-    if (host && host === '*') {
-        regex += '[^/]+?';
-    } else if (host) {
-        if (host.match(/^\*\./)) {
-            regex += '[^/]*?';
-            host = host.substring(2);
+    let hostRegex = '';
+    if (host) {
+        if (host === '*') {
+            hostRegex = '[^/]+?';
+        } else {
+            if (host.startsWith('*.')) {
+                hostRegex = '(?:[^/]+?\\.)?';
+                host = host.substring(2);
+            }
+            hostRegex += host.replace(/\./g, '\\.');
         }
-        regex += host.replace(/\./g, '\\.');
     }
 
+    let pathRegex = '/?';
     if (path) {
         if (path === '*') {
-            regex += '(/.*)?';
+            pathRegex = '(/.*)?';
         } else if (path.charAt(0) !== '/') {
-            regex += '/';
-            regex += path.replace(/\./g, '\\.').replace(/\*/g, '.*?');
-            regex += '/?';
+            pathRegex = `/${path.replace(/\./g, '\\.').replace(/\*/g, '.*?')}`;
         }
-    } else {
-        regex += '/?';
     }
 
-    regex += '$';
+    const regex = `^${schemeRegex}://${hostRegex}${pathRegex}$`;
     return new RegExp(regex);
 }
 
 browser.storage.local.get('sites').then(({sites}) => {
-  if (typeof sites === 'object' && Array.isArray(sites)) {
-    regexes = sites.map(matchPatternToRegExp);
+  if (Array.isArray(sites)) {
+    regexes[0] = sites.map(matchPatternToRegExp);
   }
 });
 
@@ -69,7 +62,7 @@ browser.webRequest.onHeadersReceived.addListener(
   function(details) {
     const {documentUrl, type, responseHeaders} = details;
     if (type == 'sub_frame' && documentUrl) {
-      for (const regex of regexes) {
+      for (const regex of regexes[0]) {
         if (documentUrl.match(regex)) {
           return {
             responseHeaders: responseHeaders.filter(({name}) => name.toLowerCase() != "x-frame-options"),
@@ -84,9 +77,8 @@ browser.webRequest.onHeadersReceived.addListener(
 );
 
 browser.storage.onChanged.addListener(function (items, areaName) {
-  const {sites} = items;
-  const newSites = sites.newValue;
-  if (typeof newSites === 'object' && Array.isArray(newSites)) {
-    regexes = newSites.map(matchPatternToRegExp);
+  const newSites = items.sites.newValue;
+  if (Array.isArray(newSites)) {
+    regexes[0] = newSites.map(matchPatternToRegExp);
   }
 });
