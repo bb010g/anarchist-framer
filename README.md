@@ -1,4 +1,4 @@
-# Anarchist Framer
+# <img align="right" src="icon.svg"> Anarchist Framer
 
 Anarchist Framer allows you to strip X-Frame-Options from frames loaded on pages
 you whitelist. This was created for Comic Rocket's reader

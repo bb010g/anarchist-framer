@@ -1,7 +1,7 @@
 // The extra array is for boxing the inner array because closures.
 const regexes = [[]];
 
-// from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns
+// from https://github.com/bb010g/match-pattern-to-regexp (CC0)
 const matchPatternToRegExp = pattern => {
     if (pattern === '') {
         return /^(?:http|https|ws|wss|file|ftp|ftps):\/\//;
