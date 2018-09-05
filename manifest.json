@@ -1,12 +1,9 @@
 {
   "manifest_version": 2,
   "name": "Anarchist Framer",
-  "developer": {
-    "name": "bb010g",
-    "url": "https://bb010g.keybase.pub/"
-  },
+  "author": "bb010g",
   "homepage_url": "https://github.com/bb010g/anarchist-framer",
-  "version": "1.0",
+  "version": "1.0.1",
   "icons": {
     "48": "icon.svg",
     "96": "icon.svg"
