@@ -60,8 +60,8 @@ browser.storage.local.get('sites').then(({sites}) => {
 
 browser.webRequest.onHeadersReceived.addListener(
   function(details) {
-    const {documentUrl, type, responseHeaders} = details;
-    if (type == 'sub_frame' && documentUrl) {
+    const {documentUrl, responseHeaders} = details;
+    if (documentUrl) {
       for (const regex of regexes[0]) {
         if (documentUrl.match(regex)) {
           return {
@@ -72,7 +72,7 @@ browser.webRequest.onHeadersReceived.addListener(
     }
     return {};
   },
-  { urls: ["<all_urls>"] },
+  { urls: ["<all_urls>"], types: ["sub_frame"] },
   ["blocking", "responseHeaders"]
 );
 
