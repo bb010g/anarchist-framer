@@ -9,7 +9,7 @@
     "96": "icon.svg"
   },
 
-  "description": "Strip X-Frame-Options headers from frames loaded on whitelisted pages.",
+  "description": "Strip X-Frame-Options and Content-Security-Policy headers from frames loaded on whitelisted pages.",
   "options_ui": {
     "page": "options.html",
     "browser_style": true,

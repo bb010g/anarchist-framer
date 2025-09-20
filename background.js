@@ -65,7 +65,8 @@ browser.webRequest.onHeadersReceived.addListener(
       for (const regex of regexes[0]) {
         if (documentUrl.match(regex)) {
           return {
-            responseHeaders: responseHeaders.filter(({name}) => name.toLowerCase() != "x-frame-options"),
+            responseHeaders: responseHeaders.filter(({name}) =>
+                !["x-frame-options", "content-security-policy"].includes(name.toLowerCase())),
           };
         }
       }
